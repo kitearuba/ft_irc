@@ -35,6 +35,12 @@
 [x] JOIN tested with one registered client
 [x] JOIN error 461 tested
 [x] JOIN error 403 tested
+[x] Server can send a message to all members of a channel
+[x] sendToChannel() helper added
+[x] Channel exposes members through getMembers()
+[x] JOIN message is broadcast to all channel members
+[x] JOIN tested with two clients
+[x] Second client joining is visible to first client
 ````
 
 ### Client handling
