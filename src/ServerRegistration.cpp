@@ -6,7 +6,7 @@ void Server::handlePass(Client *client, const std::string& message)
 {
 	std::string args;
 
-	args = getCommandArgs(message);
+	args = trimSpaces(getCommandArgs(message));
 	if (client->isRegistered())
 	{
 		std::cout << "PASS error: client already registered" << std::endl;

@@ -34,6 +34,13 @@ public:
   bool						hasTopic() const;
   void	          setInviteOnly(bool value);
   bool	          isInviteOnly() const;
+  void	          setTopicRestricted(bool value);
+  bool	          isTopicRestricted() const;
+
+  void		        setPassword(const std::string& password);
+  std::string	    getPassword() const;
+  bool		        hasPassword() const;
+  void		        clearPassword();
 
   void						addMember(Client *client);
   void						removeMember(Client *client);

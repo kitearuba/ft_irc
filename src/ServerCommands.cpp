@@ -45,6 +45,22 @@ Server::e_CommandType Server::getCommandType(const std::string& command)
 	return (CMD_UNKNOWN);
 }
 
+std::string	Server::trimSpaces(const std::string& str) const
+{
+	size_t	start;
+	size_t	end;
+
+	start = 0;
+	while (start < str.length() && str[start] == ' ')
+		start++;
+	if (start == str.length())
+		return ("");
+	end = str.length() - 1;
+	while (end > start && str[end] == ' ')
+		end--;
+	return (str.substr(start, end - start + 1));
+}
+
 bool Server::commandNeedsRegistration(e_CommandType type) const
 {
 	if (type == CMD_JOIN || type == CMD_PRIVMSG

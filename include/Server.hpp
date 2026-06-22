@@ -44,6 +44,7 @@ private:
 	void			dispatchCommand(Client *client, const std::string& message);
 	std::string		getCommandName(const std::string& message);
 	std::string		getCommandArgs(const std::string& message);
+	std::string		trimSpaces(const std::string& str) const;
 	e_CommandType	getCommandType(const std::string& command);
 	bool			commandNeedsRegistration(e_CommandType type) const;
 
@@ -70,8 +71,14 @@ private:
 						std::string& channelName);
     bool	        parseModeArgs(const std::string& args,
 			            std::string& channelName,
-			            std::string& mode);
-
+			            std::string& mode,
+			            std::string& modeArg);
+	std::string		getChannelModes(Channel *channel) const;
+	bool			applyChannelMode(Client *client,
+						Channel *channel,
+						const std::string& channelName,
+						const std::string& mode,
+			            const std::string& modeArg);
 	bool			isValidChannelName(const std::string& name) const;
 	void			sendToChannel(Channel *channel, const std::string& message,
 						Client *except);
