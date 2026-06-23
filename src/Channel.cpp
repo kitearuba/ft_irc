@@ -232,3 +232,23 @@ void	Channel::clearPassword()
 {
 	_password = "";
 }
+
+void	Channel::setUserLimit(int limit)
+{
+	_userLimit = limit;
+}
+
+int	Channel::getUserLimit() const
+{
+	return (_userLimit);
+}
+
+bool	Channel::hasUserLimit() const
+{
+	return (_userLimit > 0);
+}
+
+void	Channel::clearUserLimit()
+{
+	_userLimit = 0;
+}

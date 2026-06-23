@@ -42,6 +42,11 @@ public:
   bool		        hasPassword() const;
   void		        clearPassword();
 
+  void	          setUserLimit(int limit);
+  int		          getUserLimit() const;
+  bool	          hasUserLimit() const;
+  void	          clearUserLimit();
+
   void						addMember(Client *client);
   void						removeMember(Client *client);
   bool						isMember(Client *client) const;

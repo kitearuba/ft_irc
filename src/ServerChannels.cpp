@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 void Server::handleJoin(Client *client, const std::string& message)
 {
@@ -411,6 +412,8 @@ std::string	Server::getChannelModes(Channel *channel) const
 		modes += "t";
 	if (channel->hasPassword())
 		modes += "k";
+	if (channel->hasUserLimit())
+		modes += "l";
 	return (modes);
 }
 
@@ -427,65 +430,88 @@ bool	Server::applyChannelMode(Client *client,
 	{
 		switch (mode[i])
 		{
-		case '+':
-		case '-':
-			sign = mode[i];
-			break ;
+			case '+':
+			case '-':
+				sign = mode[i];
+				break ;
 
-		case 'i':
-			if (sign == '+')
-				channel->setInviteOnly(true);
-			else if (sign == '-')
-				channel->setInviteOnly(false);
-			else
-			{
-				sendNumeric(client, "472",
-					"i :is unknown mode char to me");
-				return (false);
-			}
-			changed = true;
-			break ;
-
-		case 't':
-			if (sign == '+')
-				channel->setTopicRestricted(true);
-			else if (sign == '-')
-				channel->setTopicRestricted(false);
-			else
-			{
-				sendNumeric(client, "472",
-					"t :is unknown mode char to me");
-				return (false);
-			}
-			changed = true;
-			break ;
-
-		case 'k':
-			if (sign == '+')
-			{
-				if (modeArg.empty())
+			case 'i':
+				if (sign == '+')
+					channel->setInviteOnly(true);
+				else if (sign == '-')
+					channel->setInviteOnly(false);
+				else
 				{
-					sendNumeric(client, "461",
-						"MODE :Not enough parameters");
+					sendNumeric(client, "472",
+						"i :is unknown mode char to me");
 					return (false);
 				}
-				channel->setPassword(modeArg);
-			}
-			else if (sign == '-')
-				channel->clearPassword();
-			else
-			{
-				sendNumeric(client, "472",
-					"k :is unknown mode char to me");
-				return (false);
-			}
-			changed = true;
-			break ;
+				changed = true;
+				break ;
 
-		default:
-			sendNumeric(client, "472", std::string(1, mode[i])
-				+ " :is unknown mode char to me");
-			return (false);
+			case 't':
+				if (sign == '+')
+					channel->setTopicRestricted(true);
+				else if (sign == '-')
+					channel->setTopicRestricted(false);
+				else
+				{
+					sendNumeric(client, "472",
+						"t :is unknown mode char to me");
+					return (false);
+				}
+				changed = true;
+				break ;
+
+			case 'k':
+				if (sign == '+')
+				{
+					if (modeArg.empty())
+					{
+						sendNumeric(client, "461",
+							"MODE :Not enough parameters");
+						return (false);
+					}
+					channel->setPassword(modeArg);
+				}
+				else if (sign == '-')
+					channel->clearPassword();
+				else
+				{
+					sendNumeric(client, "472",
+						"k :is unknown mode char to me");
+					return (false);
+				}
+				changed = true;
+				break ;
+			case 'l':
+				if (sign == '+')
+				{
+					int	limit;
+
+					if (parsePositiveInt(modeArg, limit) == false)
+					{
+						sendNumeric(client, "461",
+							"MODE :Not enough parameters");
+						return (false);
+					}
+					channel->setUserLimit(limit);
+				}
+				else if (sign == '-')
+					channel->clearUserLimit();
+				else
+				{
+					sendNumeric(client, "472",
+						"l :is unknown mode char to me");
+					return (false);
+				}
+				changed = true;
+				break ;
+
+			default:
+				sendNumeric(client, "472", std::string(1, mode[i])
+					+ " :is unknown mode char to me");
+				return (false);
 		}
 	}
 	if (changed)
@@ -494,6 +520,26 @@ bool	Server::applyChannelMode(Client *client,
 			+ client->getUsername() + "@localhost MODE "
 			+ channelName + " " + mode, NULL);
 	}
+	return (true);
+}
+
+bool	Server::parsePositiveInt(const std::string& str, int& value) const
+{
+	std::stringstream	ss;
+	int					number;
+
+	if (str.empty())
+		return (false);
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return (false);
+	}
+	ss << str;
+	ss >> number;
+	if (ss.fail() || number <= 0)
+		return (false);
+	value = number;
 	return (true);
 }
 
