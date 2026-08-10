@@ -82,6 +82,7 @@ private:
 	bool			isValidChannelName(const std::string& name) const;
 	void			sendToChannel(Channel *channel, const std::string& message,
 						Client *except);
+	void			removeClientFromChannels(Client *client);
     bool	        parsePositiveInt(const std::string& str, int& value) const;
 	void			sendReply(Client *client, const std::string& message);
 	void			sendNumeric(Client *client, const std::string& code,

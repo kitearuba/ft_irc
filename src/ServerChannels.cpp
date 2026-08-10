@@ -56,6 +56,13 @@ void Server::handleJoin(Client *client, const std::string& message)
 			+ " :Cannot join channel (+k)");
 		return ;
 	}
+	if (channel->hasUserLimit()
+		&& channel->getMemberCount() >= static_cast<size_t>(channel->getUserLimit()))
+	{
+		sendNumeric(client, "471", channel_name
+			+ " :Cannot join channel (+l)");
+		return ;
+	}
 	channel->addMember(client);
 	channel->removeInvited(client);
 	if (created)
@@ -516,9 +523,20 @@ bool	Server::applyChannelMode(Client *client,
 	}
 	if (changed)
 	{
-		sendToChannel(channel, ":" + client->getNickname() + "!"
-			+ client->getUsername() + "@localhost MODE "
-			+ channelName + " " + mode, NULL);
+		if ((mode.find("+k") != std::string::npos
+				|| mode.find("+l") != std::string::npos)
+			&& modeArg.empty() == false)
+		{
+			sendToChannel(channel, ":" + client->getNickname() + "!"
+				+ client->getUsername() + "@localhost MODE "
+				+ channelName + " " + mode + " " + modeArg, NULL);
+		}
+		else
+		{
+			sendToChannel(channel, ":" + client->getNickname() + "!"
+				+ client->getUsername() + "@localhost MODE "
+				+ channelName + " " + mode, NULL);
+		}
 	}
 	return (true);
 }
@@ -582,4 +600,31 @@ void	Server::handleMode(Client *client, const std::string& message)
 		return ;
 	}
 	applyChannelMode(client, channel, channelName, mode, modeArg);
+}
+
+void	Server::removeClientFromChannels(Client *client)
+{
+	std::map<std::string, Channel*>::iterator	it;
+	std::map<std::string, Channel*>::iterator	tmp;
+	Channel									*channel;
+
+	it = _channels.begin();
+	while (it != _channels.end())
+	{
+		channel = it->second;
+		channel->removeInvited(client);
+		if (channel->isMember(client))
+			channel->removeMember(client);
+		else
+			channel->removeOperator(client);
+		if (channel->getMemberCount() == 0)
+		{
+			tmp = it;
+			++it;
+			delete tmp->second;
+			_channels.erase(tmp);
+		}
+		else
+			++it;
+	}
 }
