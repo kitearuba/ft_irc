@@ -36,7 +36,6 @@ void Server::acceptClient()
 	client_poll.revents = 0;
 	_fds.push_back(client_poll);
 	_clients[client_fd] = new Client(client_fd);
-	std::cout << "Client connected with fd " << client_fd << std::endl;
 }
 
 void Server::handleData(int fd)
@@ -60,8 +59,6 @@ void Server::handleData(int fd)
 		message = client->extractMessage();
 		if (message.empty())
 			break ;
-		std::cout << "Full IRC command from fd " << fd << ": "
-			<< message << std::endl;
 		dispatchCommand(client, message);
 	}
 }

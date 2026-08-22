@@ -23,6 +23,9 @@ private:
 		CMD_INVITE,
 		CMD_TOPIC,
 		CMD_MODE,
+		CMD_CAP,
+		CMD_PING,
+		CMD_USERHOST,
 		CMD_UNKNOWN
 	};
 
@@ -61,6 +64,9 @@ private:
 	void			handleKick(Client *client, const std::string& message);
 	void			handleInvite(Client *client, const std::string& message);
     void	        handleMode(Client *client, const std::string& message);
+	void			handleCap(Client *client, const std::string& message);
+	void			handlePing(Client *client, const std::string& message);
+	void			handleUserhost(Client *client, const std::string& message);
 	bool			parseKickArgs(const std::string& args,
 						std::string& channelName,
 						std::string& targetNick,

@@ -72,8 +72,6 @@ void Server::handleJoin(Client *client, const std::string& message)
 	sendNumeric(client, "353", "= " + channel_name + " :"
 		+ channel->getNamesList());
 	sendNumeric(client, "366", channel_name + " :End of /NAMES list");
-	std::cout << client->getNickname() << " joined "
-		<< channel_name << std::endl;
 }
 
 void Server::handlePrivmsg(Client *client, const std::string& message)
@@ -430,9 +428,11 @@ bool	Server::applyChannelMode(Client *client,
 {
 	char	sign;
 	bool	changed;
+	Client	*target;
 
 	sign = 0;
 	changed = false;
+	target = NULL;
 	for (size_t i = 0; i < mode.length(); ++i)
 	{
 		switch (mode[i])
@@ -491,6 +491,7 @@ bool	Server::applyChannelMode(Client *client,
 				}
 				changed = true;
 				break ;
+
 			case 'l':
 				if (sign == '+')
 				{
@@ -515,6 +516,39 @@ bool	Server::applyChannelMode(Client *client,
 				changed = true;
 				break ;
 
+			case 'o':
+				if (modeArg.empty())
+				{
+					sendNumeric(client, "461",
+						"MODE :Not enough parameters");
+					return (false);
+				}
+				target = findClientByNickname(modeArg);
+				if (target == NULL)
+				{
+					sendNumeric(client, "401",
+						modeArg + " :No such nick/channel");
+					return (false);
+				}
+				if (channel->isMember(target) == false)
+				{
+					sendNumeric(client, "441", modeArg + " "
+						+ channelName + " :They aren't on that channel");
+					return (false);
+				}
+				if (sign == '+')
+					channel->addOperator(target);
+				else if (sign == '-')
+					channel->removeOperator(target);
+				else
+				{
+					sendNumeric(client, "472",
+						"o :is unknown mode char to me");
+					return (false);
+				}
+				changed = true;
+				break ;
+
 			default:
 				sendNumeric(client, "472", std::string(1, mode[i])
 					+ " :is unknown mode char to me");
@@ -524,7 +558,9 @@ bool	Server::applyChannelMode(Client *client,
 	if (changed)
 	{
 		if ((mode.find("+k") != std::string::npos
-				|| mode.find("+l") != std::string::npos)
+				|| mode.find("+l") != std::string::npos
+				|| mode.find("+o") != std::string::npos
+				|| mode.find("-o") != std::string::npos)
 			&& modeArg.empty() == false)
 		{
 			sendToChannel(channel, ":" + client->getNickname() + "!"
