@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+
+// Extracts the command name from an IRC message.
 std::string Server::getCommandName(const std::string& message)
 {
 	size_t pos;
@@ -12,6 +14,7 @@ std::string Server::getCommandName(const std::string& message)
 	return (message.substr(0, pos));
 }
 
+// Extracts the arguments following the IRC command name.
 std::string Server::getCommandArgs(const std::string& message)
 {
 	size_t pos;
@@ -22,6 +25,8 @@ std::string Server::getCommandArgs(const std::string& message)
 	return (message.substr(pos + 1));
 }
 
+// Converts a command name into its corresponding command type.
+// Returns CMD_UNKNOWN for unsupported commands.
 Server::e_CommandType Server::getCommandType(const std::string& command)
 {
 	if (command == "PASS")
@@ -51,6 +56,7 @@ Server::e_CommandType Server::getCommandType(const std::string& command)
 	return (CMD_UNKNOWN);
 }
 
+// Removes leading and trailing spaces from a string.
 std::string	Server::trimSpaces(const std::string& str) const
 {
 	size_t	start;
@@ -67,6 +73,7 @@ std::string	Server::trimSpaces(const std::string& str) const
 	return (str.substr(start, end - start + 1));
 }
 
+// Determines whether a command requires a registered IRC client.
 bool Server::commandNeedsRegistration(e_CommandType type) const
 {
 	if (type == CMD_JOIN || type == CMD_PRIVMSG
@@ -76,6 +83,8 @@ bool Server::commandNeedsRegistration(e_CommandType type) const
 	return (false);
 }
 
+// Validates registration requirements and dispatches IRC commands
+// to their corresponding handler functions.
 void Server::dispatchCommand(Client *client, const std::string& message)
 {
 	std::string		command;
@@ -131,6 +140,152 @@ void Server::dispatchCommand(Client *client, const std::string& message)
 			break ;
 	}
 }
+
+
+#include "Server.hpp"
+
+#include <iostream>
+
+// Extracts the command name from an IRC message.
+std::string Server::getCommandName(const std::string& message)
+{
+   size_t pos;
+
+   pos = message.find(' ');
+   if (pos == std::string::npos)
+      return (message);
+   return (message.substr(0, pos));
+}
+
+// Extracts the arguments following the IRC command name.
+std::string Server::getCommandArgs(const std::string& message)
+{
+   size_t pos;
+
+   pos = message.find(' ');
+   if (pos == std::string::npos)
+      return ("");
+   return (message.substr(pos + 1));
+}
+
+// Converts a command name into its corresponding command type.
+// Returns CMD_UNKNOWN for unsupported commands.
+Server::e_CommandType Server::getCommandType(const std::string& command)
+{
+   if (command == "PASS")
+      return (CMD_PASS);
+   if (command == "NICK")
+      return (CMD_NICK);
+   if (command == "USER")
+      return (CMD_USER);
+   if (command == "JOIN")
+      return (CMD_JOIN);
+   if (command == "PRIVMSG")
+      return (CMD_PRIVMSG);
+   if (command == "KICK")
+      return (CMD_KICK);
+   if (command == "INVITE")
+      return (CMD_INVITE);
+   if (command == "TOPIC")
+      return (CMD_TOPIC);
+   if (command == "MODE")
+      return (CMD_MODE);
+   if (command == "CAP")
+      return (CMD_CAP);
+   if (command == "PING")
+      return (CMD_PING);
+   if (command == "USERHOST")
+      return (CMD_USERHOST);
+   return (CMD_UNKNOWN);
+}
+
+// Removes leading and trailing spaces from a string.
+std::string Server::trimSpaces(const std::string& str) const
+{
+   size_t start;
+   size_t end;
+
+   start = 0;
+   while (start < str.length() && str[start] == ' ')
+      start++;
+   if (start == str.length())
+      return ("");
+   end = str.length() - 1;
+   while (end > start && str[end] == ' ')
+      end--;
+   return (str.substr(start, end - start + 1));
+}
+
+// Determines whether a command requires a registered IRC client.
+bool Server::commandNeedsRegistration(e_CommandType type) const
+{
+   if (type == CMD_JOIN || type == CMD_PRIVMSG
+      || type == CMD_KICK || type == CMD_INVITE
+      || type == CMD_TOPIC || type == CMD_MODE)
+      return (true);
+   return (false);
+}
+
+// Validates registration requirements and dispatches IRC commands
+// to their corresponding handler functions.
+void Server::dispatchCommand(Client *client, const std::string& message)
+{
+   std::string       command;
+   e_CommandType  type;
+
+   command = getCommandName(message);
+   type = getCommandType(command);
+   if (commandNeedsRegistration(type) && !client->isRegistered())
+   {
+      sendNotRegistered(client);
+      return ;
+   }
+   switch (type)
+   {
+      case CMD_PASS:
+         handlePass(client, message);
+         break ;
+      case CMD_NICK:
+         handleNick(client, message);
+         break ;
+      case CMD_USER:
+         handleUser(client, message);
+         break ;
+      case CMD_JOIN:
+         handleJoin(client, message);
+         break ;
+      case CMD_PRIVMSG:
+         handlePrivmsg(client, message);
+         break ;
+      case CMD_TOPIC:
+         handleTopic(client, message);
+         break ;
+      case CMD_KICK:
+         handleKick(client, message);
+         break ;
+      case CMD_INVITE:
+         handleInvite(client, message);
+         break ;
+      case CMD_MODE:
+         handleMode(client, message);
+         break ;
+      case CMD_CAP:
+         handleCap(client, message);
+         break ;
+      case CMD_PING:
+         handlePing(client, message);
+         break ;
+      case CMD_USERHOST:
+         handleUserhost(client, message);
+         break ;
+      default:
+         sendUnknownCommand(client, command);
+         break ;
+   }
+}
+
+// Handles capability discovery requests from IRC clients.
+// Responds to CAP LS with an empty capability list.
 void	Server::handleCap(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -145,6 +300,8 @@ void	Server::handleCap(Client *client, const std::string& message)
 		sendReply(client, ":ircserv CAP " + target + " LS :");
 }
 
+// Responds to IRC PING requests with a PONG message.
+// Sends an error if no token is provided.
 void	Server::handlePing(Client *client, const std::string& message)
 {
 	std::string	token;
@@ -160,7 +317,8 @@ void	Server::handlePing(Client *client, const std::string& message)
 	sendReply(client, ":ircserv PONG ircserv :" + token);
 }
 
-
+// Looks up a client by nickname and returns its user and host information.
+// Sends an empty USERHOST reply when the nickname is not found.
 void	Server::handleUserhost(Client *client, const std::string& message)
 {
 	std::string	nick;

@@ -6,6 +6,7 @@
 #include <exception>
 #include <sstream>
 
+// Checks whether a string contains only numeric digits.
 static bool	isOnlyDigits(const std::string& str)
 {
 	if (str.empty())
@@ -18,6 +19,8 @@ static bool	isOnlyDigits(const std::string& str)
 	return (true);
 }
 
+// Converts a port argument to an integer and validates
+// that it is within the allowed TCP port range.
 static int	parsePort(const std::string& arg)
 {
 	std::stringstream	ss;
@@ -34,6 +37,8 @@ static int	parsePort(const std::string& arg)
 	return (port);
 }
 
+// Validates command-line arguments, initializes the IRC server,
+// and starts its event loop while handling startup errors.
 int	main(int argc, char **argv)
 {
 	int			port;

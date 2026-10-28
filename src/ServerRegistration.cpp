@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+// Validates the client's password and updates its authentication status.
+// Sends an IRC error reply if the password is missing or incorrect.
 void Server::handlePass(Client *client, const std::string& message)
 {
 	std::string args;
@@ -26,6 +28,8 @@ void Server::handlePass(Client *client, const std::string& message)
 	checkRegistration(client);
 }
 
+// Checks nickname availability, assigns the requested nickname,
+// and attempts to complete the client's registration.
 void Server::handleNick(Client *client, const std::string& message)
 {
 	std::string nickname;
@@ -45,6 +49,8 @@ void Server::handleNick(Client *client, const std::string& message)
 	checkRegistration(client);
 }
 
+// Parses and validates the USER command parameters,
+// then stores the username and real name for registration.
 void	Server::handleUser(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -102,6 +108,8 @@ void	Server::handleUser(Client *client, const std::string& message)
 	checkRegistration(client);
 }
 
+// Completes client registration when the password, nickname,
+// and username are valid, then sends the IRC welcome reply.
 void Server::checkRegistration(Client *client)
 {
 	if (client->isRegistered())
@@ -116,6 +124,7 @@ void Server::checkRegistration(Client *client)
 	}
 }
 
+// Checks whether a nickname is already assigned to a connected client.
 bool Server::isNicknameTaken(const std::string& nickname) const
 {
 	std::map<int, Client*>::const_iterator it;
@@ -128,6 +137,8 @@ bool Server::isNicknameTaken(const std::string& nickname) const
 	return (false);
 }
 
+// Finds a connected client by nickname and returns its pointer,
+// or NULL if no matching client exists.
 Client *Server::findClientByNickname(const std::string& nickname) const
 {
 	std::map<int, Client*>::const_iterator it;

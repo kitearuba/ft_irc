@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <cerrno>
 
+// Accepts a new client connection, sets the socket to non-blocking mode,
+// and registers the client for polling and server management.
 void Server::acceptClient()
 {
 	sockaddr_in	client_addr;
@@ -32,6 +34,8 @@ void Server::acceptClient()
 	_clients[client_fd] = new Client(client_fd);
 }
 
+// Reads incoming client data, buffers incomplete messages,
+// and dispatches complete IRC commands for processing.
 void Server::handleData(int fd)
 {
 	char		buffer[1024];
@@ -58,6 +62,8 @@ void Server::handleData(int fd)
 	}
 }
 
+// Sends pending data to a client and updates the output buffer,
+// disabling POLLOUT when no further data needs to be sent.
 void Server::handleWrite(int fd)
 {
 	Client	*client;
@@ -80,6 +86,8 @@ void Server::handleWrite(int fd)
     	disablePollOut(fd);
 }
 
+// Removes a disconnected client from all channels and server containers,
+// releases its memory, and closes its socket.
 void	Server::removeClient(int fd)
 {
 	std::map<int, Client*>::iterator	clientIt;
@@ -106,6 +114,7 @@ void	Server::removeClient(int fd)
 	std::cout << "Client disconnected with fd " << fd << std::endl;
 }
 
+// Enables POLLOUT monitoring for a client with pending outgoing data.
 void Server::enablePollOut(int fd)
 {
 	for (size_t i = 0; i < _fds.size(); ++i)
@@ -118,6 +127,7 @@ void Server::enablePollOut(int fd)
 	}
 }
 
+// Disables POLLOUT monitoring when a client has no pending outgoing data.
 void Server::disablePollOut(int fd)
 {
 	for (size_t i = 0; i < _fds.size(); ++i)

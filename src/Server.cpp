@@ -8,6 +8,8 @@
 #include <cstring>
 #include <unistd.h>
 
+// Initializes the listening TCP socket, configures it as non-blocking,
+// binds it to the specified port, and registers it with poll().
 Server::Server(int port, std::string password)
 {
 	_port = port;
@@ -41,6 +43,8 @@ Server::Server(int port, std::string password)
 	_fds.push_back(server_poll);
 }
 
+// Releases all owned client and channel objects,
+// then closes the remaining monitored file descriptors.
 Server::~Server()
 {
 	for (std::map<int, Client*>::iterator it = _clients.begin();
@@ -61,6 +65,8 @@ Server::~Server()
 	_fds.clear();
 }
 
+// Runs the main poll-based event loop, accepting connections,
+// processing client input, sending pending output, and handling errors.
 void Server::run()
 {
 	std::cout << "IRC server listening on port " << _port << std::endl;

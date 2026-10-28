@@ -4,6 +4,8 @@
 #include <vector>
 #include <sstream>
 
+// Creates or joins a channel after checking its access restrictions.
+// Grants operator status to the creator and sends the channel names list.
 void Server::handleJoin(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -74,6 +76,8 @@ void Server::handleJoin(Client *client, const std::string& message)
 	sendNumeric(client, "366", channel_name + " :End of /NAMES list");
 }
 
+// Sends a private message to a client or broadcasts it to a channel.
+// Checks that the recipient exists and channel membership is valid.
 void Server::handlePrivmsg(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -133,6 +137,7 @@ void Server::handlePrivmsg(Client *client, const std::string& message)
 		+ target + " :" + text);
 }
 
+// Checks whether a channel name begins with the required # prefix.
 bool Server::isValidChannelName(const std::string& name) const
 {
 	if (name.empty())
@@ -142,6 +147,7 @@ bool Server::isValidChannelName(const std::string& name) const
 	return (true);
 }
 
+// Sends a message to each channel member, optionally excluding one client.
 void Server::sendToChannel(Channel *channel, const std::string& message,
 	Client *except)
 {
@@ -155,6 +161,7 @@ void Server::sendToChannel(Channel *channel, const std::string& message,
 	}
 }
 
+// Retrieves or updates a channel topic, enforcing operator-only changes when enabled.
 void Server::handleTopic(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -211,6 +218,7 @@ void Server::handleTopic(Client *client, const std::string& message)
 		+ channel_name + " :" + topic, NULL);
 }
 
+// Extracts the channel, target nickname, and optional reason from KICK arguments.
 bool Server::parseKickArgs(const std::string& args,
 	std::string& channelName, std::string& targetNick,
 	std::string& reason, const std::string& defaultReason)
@@ -246,7 +254,8 @@ bool Server::parseKickArgs(const std::string& args,
 	return (true);
 }
 
-
+// Verifies operator permissions and removes a target member from a channel.
+// Notifies channel members before removing the target.
 void Server::handleKick(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -294,6 +303,7 @@ void Server::handleKick(Client *client, const std::string& message)
 	channel->removeMember(target);
 }
 
+// Extracts the target nickname and channel name from INVITE arguments.
 bool	Server::parseInviteArgs(const std::string& args,
 	std::string& targetNick, std::string& channelName)
 {
@@ -316,6 +326,7 @@ bool	Server::parseInviteArgs(const std::string& args,
 	return (true);
 }
 
+// Validates an invitation, records the invited client, and sends IRC notifications.
 void Server::handleInvite(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -367,6 +378,7 @@ void Server::handleInvite(Client *client, const std::string& message)
 		+ targetNick + " " + channelName);
 }
 
+// Extracts the channel name, mode flags, and optional mode argument.
 bool	Server::parseModeArgs(const std::string& args,
 	std::string& channelName, std::string& mode, std::string& modeArg)
 {
@@ -406,6 +418,7 @@ bool	Server::parseModeArgs(const std::string& args,
 	return (true);
 }
 
+// Builds a string describing the channel's currently enabled modes.
 std::string	Server::getChannelModes(Channel *channel) const
 {
 	std::string	modes;
@@ -422,6 +435,7 @@ std::string	Server::getChannelModes(Channel *channel) const
 	return (modes);
 }
 
+// Applies supported channel modes (+/-i, t, k, l, o) and notifies members.
 bool	Server::applyChannelMode(Client *client,
 	Channel *channel, const std::string& channelName,
 	const std::string& mode, const std::string& modeArg)
@@ -577,6 +591,7 @@ bool	Server::applyChannelMode(Client *client,
 	return (true);
 }
 
+// Parses a string as a strictly positive integer for the channel user limit.
 bool	Server::parsePositiveInt(const std::string& str, int& value) const
 {
 	std::stringstream	ss;
@@ -597,6 +612,7 @@ bool	Server::parsePositiveInt(const std::string& str, int& value) const
 	return (true);
 }
 
+// Reports channel modes or applies changes after checking operator privileges.
 void	Server::handleMode(Client *client, const std::string& message)
 {
 	std::string	args;
@@ -638,6 +654,8 @@ void	Server::handleMode(Client *client, const std::string& message)
 	applyChannelMode(client, channel, channelName, mode, modeArg);
 }
 
+// Removes a client from all channel memberships and invitation lists.
+// Deletes channels that become empty.
 void	Server::removeClientFromChannels(Client *client)
 {
 	std::map<std::string, Channel*>::iterator	it;
