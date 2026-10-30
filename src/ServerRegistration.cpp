@@ -34,7 +34,14 @@ void Server::handleNick(Client *client, const std::string& message)
 {
 	std::string nickname;
 
-	nickname = getCommandArgs(message);
+	//nickname = getCommandArgs(message);
+	std::string args = getCommandArgs(message);
+	size_t start = args.find_first_not_of(" \t");
+	if (start != std::string::npos)
+	{
+		size_t end = args.find_first_of(" \t", start);
+		nickname = args.substr(start, end - start);
+	}
 	if (nickname.empty())
 	{
 		sendNumeric(client, "431", ":No nickname given");
